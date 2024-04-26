@@ -412,8 +412,7 @@ compiler_clean: compiler_moc_predefs_clean
 
 ####### Compile
 
-qgsmando.o: qgsmando.cpp qgismando.h \
-		ui_interface.h
+qgsmando.o: qgsmando.cpp qgismando.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qgsmando.o qgsmando.cpp
 
 ####### Install

@@ -11,28 +11,26 @@
 #include <QAction>
 #include <QApplication>
 
-static const QString s_name = QStringLiteral("Hellooo");
-static const QString s_description = QStringLiteral("Sample Plugin");
+static const QString s_name = QStringLiteral("mando plugin");
+static const QString s_description = QStringLiteral("just a description");
 static const QString s_category = QStringLiteral("Plugins");
 static const QString s_version = QStringLiteral("Version 1.2.3");
 static const QgisPlugin::PluginType s_type = QgisPlugin::UI;
 
-//class QAction;
-class QgsMando: public QgisPlugin {
+class QgsMando:public QObject, public QgisPlugin {
 
+    //Q_OBJECT
     public: 
-     //QgsMando(QgisInterface* iface);
-    //~QgsMando();
-    QgsMando(){}
-    void initGui();
-    void unload();
+        explicit QgsMando(QgisInterface* iface): mIface(iface), qaction(0) {}
+        //~QgsMando();
+        virtual void initGui()  override;
+        virtual void unload()   override;
 
     //private slots:
-        //void button_action();
+    //void button_action();
 
-    //private:
-    //QgisInterface* mIface;
-    //QAction* qaction;
+    private:
+        QgisInterface* mIface;
+        QAction* qaction;
 };
-
 #endif
