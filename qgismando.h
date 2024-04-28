@@ -19,18 +19,19 @@ static const QgisPlugin::PluginType s_type = QgisPlugin::UI;
 
 class QgsMando:public QObject, public QgisPlugin {
 
-    //Q_OBJECT
     public: 
-        explicit QgsMando(QgisInterface* iface): mIface(iface), qaction(0) {}
+        explicit QgsMando(QgisInterface* iface);
         //~QgsMando();
         virtual void initGui()  override;
         virtual void unload()   override;
 
-    //private slots:
-    //void button_action();
+    public slots:
+        void button_action();
+        void show_dialog();
 
     private:
         QgisInterface* mIface;
         QAction* qaction;
+        QAction* dialogAction;
 };
 #endif

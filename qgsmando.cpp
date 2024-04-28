@@ -6,8 +6,43 @@
 
 #include <QtWidgets>
 #include "qgismando.h"
+#include "dialog.h"
 #include "qgisinterface.h"
 #include <QAction>
+
+
+void Dialog::example(){
+    std::cout << "from example" << std::endl;
+}
+
+void Dialog::submit_content(){
+    QString text = edit->text();
+    std::string texto = text.toStdString();
+    //qDebug() << "Submitted text:" << text;
+    std::cout << "content:" << texto << std::endl;
+}
+
+Dialog::Dialog(QWidget *parent): QDialog(parent){
+    setFixedSize(400,300);
+
+    layout  = new QVBoxLayout(this);
+    label   = new QLabel("hello", this);
+    button  = new QPushButton("example", this);
+    submit  = new QPushButton("submit", this);
+    edit    = new QLineEdit(this);
+
+    connect(button, &QPushButton::clicked, this, &Dialog::example);
+    connect(submit, &QPushButton::clicked, this, &Dialog::submit_content);
+
+    edit->setPlaceholderText("Enter text here");
+    layout->setContentsMargins(20, 20, 20, 20);
+    layout->addWidget(button);
+    layout->addWidget(submit);
+    layout->addWidget(edit);
+    layout->addWidget(label);
+    setLayout(layout);
+}
+
 
 double rest(float a, float b){
     return a - b;
@@ -55,7 +90,7 @@ int lua_connection(){
     return 0;
 }
 
-//QgsMando::QgsMando(QgisInterface* iface): mIface(iface), qaction(0){}
+QgsMando::QgsMando(QgisInterface* iface): QgisPlugin(s_name, s_description, s_category, s_version, s_type), mIface(iface){}
 //QgsMando::~QgsMando(){}
 
 QGISEXTERN QgisPlugin* classFactory(QgisInterface* iface){
@@ -86,23 +121,30 @@ QGISEXTERN void unload(QgisPlugin* plugin){
     delete plugin;
 }
 
+void QgsMando::button_action(){
+    std::cout << "button action" << std::endl;
+    QgsMessageLog::logMessage(QString("menu clicked"), QString("again welcome"), Qgis::MessageLevel::Info);
+}
+
+void QgsMando::show_dialog(){
+    Dialog Mydialog;
+    Mydialog.exec();
+}
+
 void QgsMando::initGui(){
     std::cout << "::initGui" << std::endl;
-    //qaction = new QAction(tr("&Hello"), this);
-    //connect(qaction, SIGNAL(triggered()), this, SLOT(button_action()));
-    //mIface->addToolBarIcon(qaction);
-    //mIface->addPluginToMenu(tr("&Hello"), qaction);
+    qaction = new QAction(tr("&Start"), this);
+    dialogAction = new QAction(tr("&Show Dialog"), this);
+    connect(qaction, &QAction::triggered, this, &QgsMando::button_action);
+    connect(dialogAction, &QAction::triggered, this, &QgsMando::show_dialog);
+    mIface->addPluginToMenu(tr("&Mando"), qaction);
+    mIface->addPluginToMenu(tr("&Dialog"),dialogAction);
     lua_connection();
 }
 
 void QgsMando::unload(){
-    //mIface->removeToolBarIcon(qaction);
-    //mIface->removePluginMenu(tr("&Hello"), qaction);
+    mIface->removePluginMenu(tr("&Mando"), qaction);
+    mIface->removePluginMenu(tr("&Dialog"), dialogAction);
     std::cout << "::unload" << std::endl;
 }
 
-//void QgsMando::button_action(){
-//    std::cout << "button action" << std::endl;
-//}
-
-//Q_EXPORT_PLUGIN2();

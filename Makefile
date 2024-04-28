@@ -145,7 +145,8 @@ DIST          = /usr/lib/i386-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/i386-linux-gnu/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib/i386-linux-gnu/qt5/mkspecs/features/yacc.prf \
 		/usr/lib/i386-linux-gnu/qt5/mkspecs/features/lex.prf \
-		project_set.pro qgismando.h qgsmando.cpp
+		project_set.pro qgismando.h \
+		dialog.h qgsmando.cpp
 QMAKE_TARGET  = Mando
 DESTDIR       = 
 TARGET        = libMando.so
@@ -361,7 +362,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /usr/lib/i386-linux-gnu/qt5/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents qgismando.h $(DISTDIR)/
+	$(COPY_FILE) --parents qgismando.h dialog.h $(DISTDIR)/
 	$(COPY_FILE) --parents qgsmando.cpp $(DISTDIR)/
 
 
@@ -412,7 +413,8 @@ compiler_clean: compiler_moc_predefs_clean
 
 ####### Compile
 
-qgsmando.o: qgsmando.cpp qgismando.h
+qgsmando.o: qgsmando.cpp qgismando.h \
+		dialog.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qgsmando.o qgsmando.cpp
 
 ####### Install
