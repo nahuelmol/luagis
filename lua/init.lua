@@ -14,5 +14,6 @@ a["second"]= res
 
 print(a["first"])
 print(a["second"])
+print("my variable:", myvariable)
 
 messgs.welcome()

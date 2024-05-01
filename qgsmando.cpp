@@ -9,86 +9,59 @@
 #include "dialog.h"
 #include "qgisinterface.h"
 #include <QAction>
-
-
-void Dialog::example(){
-    std::cout << "from example" << std::endl;
-}
+#include "embedding.cpp"
 
 void Dialog::submit_content(){
-    QString text = edit->text();
-    std::string texto = text.toStdString();
+    QString xcoor = xedit->text();
+    QString ycoor = yedit->text();
+    std::string xcoordinate = xcoor.toStdString();
+    std::string ycoordinate = ycoor.toStdString();
+
+    float xnumber = std::stof(xcoordinate);
+    float ynumber = std::stof(ycoordinate);
+
+    std::string filename = "submit";
+    //start L
+    lua_State* L = lua_connection();
+
+    lua_pushnumber(L, xnumber);
+    lua_setglobal(L, "xnumber");
+    lua_pushnumber(L, ynumber);
+    lua_setglobal(L, "ynumber");
+
+    lua_load(filename, L);
+    //end L
     //qDebug() << "Submitted text:" << text;
-    std::cout << "content:" << texto << std::endl;
+}
+
+void Dialog::layers_handler(){
+    std::string filename = "layers";
+    lua_State* L = lua_connection();
+    lua_load(filename, L);
 }
 
 Dialog::Dialog(QWidget *parent): QDialog(parent){
     setFixedSize(400,300);
 
     layout  = new QVBoxLayout(this);
-    label   = new QLabel("hello", this);
-    button  = new QPushButton("example", this);
     submit  = new QPushButton("submit", this);
-    edit    = new QLineEdit(this);
+    xedit    = new QLineEdit(this);
+    yedit    = new QLineEdit(this);
 
-    connect(button, &QPushButton::clicked, this, &Dialog::example);
+    layers_btn = new QPushButton("layers", this);
+    connect(layers_btn, &QPushButton::clicked, this, &Dialog::layers_handler);
     connect(submit, &QPushButton::clicked, this, &Dialog::submit_content);
 
-    edit->setPlaceholderText("Enter text here");
+    xedit->setPlaceholderText("enter the x coor");
+    yedit->setPlaceholderText("enter the y coor");
     layout->setContentsMargins(20, 20, 20, 20);
-    layout->addWidget(button);
     layout->addWidget(submit);
-    layout->addWidget(edit);
-    layout->addWidget(label);
+    layout->addWidget(xedit);
+    layout->addWidget(yedit);
     setLayout(layout);
 }
 
 
-double rest(float a, float b){
-    return a - b;
-}
-
-double add(float a, float b){
-    return a + b;
-}
-
-int restadapted(lua_State* L){
-    double a = lua_tonumber(L,1);
-    double b = lua_tonumber(L,2);
-    double result = rest(a,b);
-    lua_pushnumber(L, result);
-    return 1;
-}
-
-int addadapted(lua_State* L){
-    double a = lua_tonumber(L,1);
-    double b = lua_tonumber(L,2);
-    double result = add(a,b);
-    lua_pushnumber(L, result);
-    return 1;
-}
-
-int lua_connection(){
-    lua_State* L = luaL_newstate();
-    luaL_openlibs(L);
-    luaL_Reg myMath[] = {
-        {"add",     addadapted},
-        {"res",     restadapted},
-        {NULL, NULL}
-    };
-    lua_newtable(L);
-    luaL_setfuncs(L, myMath, 0);
-    lua_setglobal(L, "myMath");
-
-    if (luaL_loadfile(L, "lua/init.lua") || lua_pcall(L,0,0,0)){
-        std::cerr << "Error" << lua_tostring(L, -1) << std::endl;
-        lua_close(L);
-        return 1;
-    }
-    lua_close(L);
-
-    return 0;
-}
 
 QgsMando::QgsMando(QgisInterface* iface): QgisPlugin(s_name, s_description, s_category, s_version, s_type), mIface(iface){}
 //QgsMando::~QgsMando(){}
@@ -139,7 +112,12 @@ void QgsMando::initGui(){
     connect(dialogAction, &QAction::triggered, this, &QgsMando::show_dialog);
     mIface->addPluginToMenu(tr("&Mando"), qaction);
     mIface->addPluginToMenu(tr("&Dialog"),dialogAction);
-    lua_connection();
+
+    std::string init = "init";
+    lua_State* L = lua_connection();
+    lua_pushinteger(L, 42);
+    lua_setglobal(L, "myvariable");
+    lua_load(init, L);
 }
 
 void QgsMando::unload(){

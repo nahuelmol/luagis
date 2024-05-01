@@ -10,16 +10,15 @@ class Dialog: public QDialog {
         Dialog(QWidget *parent = nullptr);
 
     public slots:
-        void example();
         void submit_content();
-
+        void layers_handler();
 
     private:
         QVBoxLayout *layout;
-        QLabel *label;
-        QPushButton *button;
         QPushButton *submit;
-        QLineEdit *edit;
+        QPushButton *layers_btn;
+        QLineEdit *xedit;
+        QLineEdit *yedit;
 };
 
 #endif // DIALOG_H
