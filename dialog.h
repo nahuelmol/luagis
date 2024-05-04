@@ -14,11 +14,15 @@ class Dialog: public QDialog {
         void layers_handler();
 
     private:
+        QgsVectorLayer *currentVectorLayer;
         QVBoxLayout *layout;
         QPushButton *submit;
         QPushButton *layers_btn;
         QLineEdit *xedit;
         QLineEdit *yedit;
+
+        //statics
+        QLabel *points_label;
 };
 
 #endif // DIALOG_H

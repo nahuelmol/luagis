@@ -26,12 +26,10 @@ class QgsMando:public QObject, public QgisPlugin {
         virtual void unload()   override;
 
     public slots:
-        void button_action();
         void show_dialog();
 
     private:
         QgisInterface* mIface;
-        QAction* qaction;
         QAction* dialogAction;
 };
 #endif

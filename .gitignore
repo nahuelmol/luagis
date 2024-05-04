@@ -2,4 +2,13 @@
 *.so
 *.stash
 *.ui
+
+*.cpg
+*.dbf
+*.prj
+*.shp
+*.shx
+
+*.png
+
 main

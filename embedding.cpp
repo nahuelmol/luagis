@@ -22,6 +22,7 @@ int addadapted(lua_State* L){
     lua_pushnumber(L, result);
     return 1;
 }
+
 lua_State* lua_connection(){
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
@@ -46,4 +47,30 @@ int lua_load(std::string& filename, lua_State* L){
     }
     lua_close(L);
     return 0;
+}
+
+void addPoint(float x, float y, QgsVectorLayer* vectorlayer){
+    //vectorlayer->startEditing();
+    if (!vectorlayer->isEditable()) {
+        qDebug() << "the vector layer is not editable";
+        vectorlayer->rollBack();
+        return;
+    }
+    if(!vectorlayer->startEditing()){
+        qDebug() << "problem starting editing session";
+        vectorlayer->rollBack();
+        return;
+    };
+    QgsFeature feature;
+    QgsPointXY point(x,y);
+    feature.setGeometry(QgsGeometry::fromPointXY(point));
+    if (!vectorlayer->addFeature(feature)) {
+        // Handle error adding feature
+        vectorlayer->rollBack();
+        qDebug() << "error adding feature";
+        QgsError error = vectorlayer->dataProvider()->error();
+        qDebug() << "Data Provider Error:" << error.message();
+        return;
+    }
+    vectorlayer->commitChanges();
 }

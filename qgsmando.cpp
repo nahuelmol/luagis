@@ -4,6 +4,8 @@
 #include<qgisplugin.h>
 //#include "ui_interface.h"
 
+//#include <QgsProject>
+//#include <QgsMapLayer>
 #include <QtWidgets>
 #include "qgismando.h"
 #include "dialog.h"
@@ -17,11 +19,14 @@ void Dialog::submit_content(){
     std::string xcoordinate = xcoor.toStdString();
     std::string ycoordinate = ycoor.toStdString();
 
+    QString old_content = points_label->text();
+    QString new_content = old_content + "\n" +"("+ xcoor + "," + ycoor+")"; 
+    points_label->setText(new_content);
+
     float xnumber = std::stof(xcoordinate);
     float ynumber = std::stof(ycoordinate);
 
     std::string filename = "submit";
-    //start L
     lua_State* L = lua_connection();
 
     lua_pushnumber(L, xnumber);
@@ -29,42 +34,91 @@ void Dialog::submit_content(){
     lua_pushnumber(L, ynumber);
     lua_setglobal(L, "ynumber");
 
+    if(currentVectorLayer){
+        addPoint(xnumber, ynumber, currentVectorLayer);
+        qDebug() << "current vector layer name:" << currentVectorLayer->name();
+    } else {
+        qDebug() << "current Vector layer is null";
+    }
+
     lua_load(filename, L);
-    //end L
-    //qDebug() << "Submitted text:" << text;
 }
 
 void Dialog::layers_handler(){
+    QgsProject *project = QgsProject::instance();
+    std::string typelayer = "unknown";
+    if(!project){
+        std::cout << "theres not a project"<< std::endl;
+    } else {
+        QList<QgsMapLayer *> mapLayers = project->mapLayers().values();
+        for (QgsMapLayer *layer: mapLayers){
+            QString layerN = layer->name(); //layer name
+            QString layerT = layer->dataProvider()->name(); //layer type
+            std::string layer_type = layerT.toStdString();
+            
+            qDebug() << "name:" << layerN;
+            QgsVectorLayer* vectorLayer = qobject_cast<QgsVectorLayer*>(layer);
+            if(vectorLayer){
+                QgsWkbTypes::Type geometryType = vectorLayer->wkbType();
+                switch(geometryType){
+                    case QgsWkbTypes::Point:
+                        qDebug() << "point vector layer:" << layerT;
+                        break;
+                    case QgsWkbTypes::MultiPoint:
+                        qDebug() << "multipoint vector layer:" << layerT;
+                        currentVectorLayer = vectorLayer;
+                        break;
+                    case QgsWkbTypes::LineString:
+                    case QgsWkbTypes::LineStringM:
+                    case QgsWkbTypes::LineStringZ:
+                    case QgsWkbTypes::LineStringZM:
+                        qDebug() << "line string vector layer:" << layerT;
+                        break;
+                    case QgsWkbTypes::Polygon:
+                    case QgsWkbTypes::PolygonM:
+                    case QgsWkbTypes::PolygonZ:
+                    case QgsWkbTypes::PolygonZM:
+                        qDebug() << "polygon vector layer:" << layerT;
+                        break;
+                    default:
+                        qDebug() << "vector layer unknown:"<< layerT;
+                        break;
+                }
+            } else {
+                qDebug() << "not a vector layer:" << layerT;
+            }
+        }
+    }
     std::string filename = "layers";
     lua_State* L = lua_connection();
     lua_load(filename, L);
 }
 
-Dialog::Dialog(QWidget *parent): QDialog(parent){
-    setFixedSize(400,300);
 
-    layout  = new QVBoxLayout(this);
-    submit  = new QPushButton("submit", this);
-    xedit    = new QLineEdit(this);
-    yedit    = new QLineEdit(this);
+Dialog::Dialog(QWidget *parent): QDialog(parent){
+    setFixedSize(700,300);
+
+    layout      = new QVBoxLayout(this);
+    submit      = new QPushButton("submit", this);
+    xedit       = new QLineEdit(this);
+    yedit       = new QLineEdit(this);
+    points_label= new QLabel("Points:", this);
 
     layers_btn = new QPushButton("layers", this);
     connect(layers_btn, &QPushButton::clicked, this, &Dialog::layers_handler);
     connect(submit, &QPushButton::clicked, this, &Dialog::submit_content);
 
-    xedit->setPlaceholderText("enter the x coor");
-    yedit->setPlaceholderText("enter the y coor");
+    xedit->setPlaceholderText("enter x coor");
+    yedit->setPlaceholderText("enter y coor");
     layout->setContentsMargins(20, 20, 20, 20);
+    layout->addWidget(points_label);
     layout->addWidget(submit);
     layout->addWidget(xedit);
     layout->addWidget(yedit);
     setLayout(layout);
 }
 
-
-
 QgsMando::QgsMando(QgisInterface* iface): QgisPlugin(s_name, s_description, s_category, s_version, s_type), mIface(iface){}
-//QgsMando::~QgsMando(){}
 
 QGISEXTERN QgisPlugin* classFactory(QgisInterface* iface){
     return new QgsMando(iface);
@@ -106,12 +160,9 @@ void QgsMando::show_dialog(){
 
 void QgsMando::initGui(){
     std::cout << "::initGui" << std::endl;
-    qaction = new QAction(tr("&Start"), this);
-    dialogAction = new QAction(tr("&Show Dialog"), this);
-    connect(qaction, &QAction::triggered, this, &QgsMando::button_action);
+    dialogAction = new QAction(tr("&Add SEVS"), this);
     connect(dialogAction, &QAction::triggered, this, &QgsMando::show_dialog);
-    mIface->addPluginToMenu(tr("&Mando"), qaction);
-    mIface->addPluginToMenu(tr("&Dialog"),dialogAction);
+    mIface->addPluginToMenu(tr("&Sev"),dialogAction);
 
     std::string init = "init";
     lua_State* L = lua_connection();
