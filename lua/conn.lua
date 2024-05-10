@@ -1,0 +1,5 @@
+
+db.connect()
+
+db.query("CREATE TABLE IF NOT EXISTS MyTable (ID INTEGER PRIMARY KEY AUTOINCREMENT, Name TEXT, Age INTEGER)");
+db.query("SELECT * FROM MyTable;")

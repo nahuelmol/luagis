@@ -22,6 +22,7 @@ class Dialog: public QDialog {
         QLineEdit *yedit;
 
         //statics
+        QLabel *layers_label;
         QLabel *points_label;
 };
 

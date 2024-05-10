@@ -26,14 +26,9 @@ int addadapted(lua_State* L){
 lua_State* lua_connection(){
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
-    luaL_Reg myMath[] = {
-        {"add",     addadapted},
-        {"res",     restadapted},
-        {NULL, NULL}
-    };
     lua_newtable(L);
-    luaL_setfuncs(L, myMath, 0);
-    lua_setglobal(L, "myMath");
+    //luaL_setfuncs(L, myMath, 0);
+    //lua_setglobal(L, "myMath");
     return L;
 }
 
@@ -52,25 +47,41 @@ int lua_load(std::string& filename, lua_State* L){
 void addPoint(float x, float y, QgsVectorLayer* vectorlayer){
     //vectorlayer->startEditing();
     if (!vectorlayer->isEditable()) {
-        qDebug() << "the vector layer is not editable";
-        vectorlayer->rollBack();
-        return;
+        if(!vectorlayer->startEditing()){
+            qDebug() << "problem starting editing session";
+            vectorlayer->rollBack();
+            return;
+        }
     }
-    if(!vectorlayer->startEditing()){
-        qDebug() << "problem starting editing session";
-        vectorlayer->rollBack();
-        return;
-    };
+    if(vectorlayer->isEditable()){
+        qDebug() << "editable";
+    }
+    qDebug() << "starting editing session";
     QgsFeature feature;
-    QgsPointXY point(x,y);
-    feature.setGeometry(QgsGeometry::fromPointXY(point));
-    if (!vectorlayer->addFeature(feature)) {
+    QgsMultiPointXY multipoint;
+    //QgsPointXY point(x,y);
+    QgsPointXY fpoint(x,y);
+    //multipoint.addGeometry(QgsGeometry::fromPointXY(point));
+    //QgsGeometry geopoint = QgsGeometry::fromPointXY(fpoint);
+    //const QgsAbstractGeometry *cabsgeopoint = geopoint.constGet();
+    //QgsAbstractGeometry* absgeopoint = const_cast<QgsAbstractGeometry*>(cabsgeopoint);
+    //multipoint.addGeometry(absgeopoint);
+    multipoint.append(fpoint);
+    QgsGeometry neoGEO = QgsGeometry::fromMultiPointXY(multipoint);
+    feature.setGeometry(neoGEO);
+    /*if (!vectorlayer->addFeature(feature)) {
         // Handle error adding feature
         vectorlayer->rollBack();
         qDebug() << "error adding feature";
         QgsError error = vectorlayer->dataProvider()->error();
-        qDebug() << "Data Provider Error:" << error.message();
+        qDebug() << "Data Provider Error:" << error.type();
         return;
+    }*/
+    if(feature.hasGeometry()){
+        qDebug() << "has geometry";
     }
-    vectorlayer->commitChanges();
+    vectorlayer->addFeature(feature);
+    if(!vectorlayer->commitChanges()){
+        qDebug() << "Error commiting changes";
+    };
 }

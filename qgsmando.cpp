@@ -11,7 +11,7 @@
 #include "dialog.h"
 #include "qgisinterface.h"
 #include <QAction>
-#include "embedding.cpp"
+#include "embedding.h"
 
 void Dialog::submit_content(){
     QString xcoor = xedit->text();
@@ -47,6 +47,7 @@ void Dialog::submit_content(){
 void Dialog::layers_handler(){
     QgsProject *project = QgsProject::instance();
     std::string typelayer = "unknown";
+    QString layers = "";
     if(!project){
         std::cout << "theres not a project"<< std::endl;
     } else {
@@ -57,6 +58,7 @@ void Dialog::layers_handler(){
             std::string layer_type = layerT.toStdString();
             
             qDebug() << "name:" << layerN;
+            layers = layers + "\n" +layerN +": "+ layerT;
             QgsVectorLayer* vectorLayer = qobject_cast<QgsVectorLayer*>(layer);
             if(vectorLayer){
                 QgsWkbTypes::Type geometryType = vectorLayer->wkbType();
@@ -89,6 +91,7 @@ void Dialog::layers_handler(){
             }
         }
     }
+    layers_label->setText(layers);
     std::string filename = "layers";
     lua_State* L = lua_connection();
     lua_load(filename, L);
@@ -103,6 +106,7 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     xedit       = new QLineEdit(this);
     yedit       = new QLineEdit(this);
     points_label= new QLabel("Points:", this);
+    layers_label= new QLabel("Layers:", this);
 
     layers_btn = new QPushButton("layers", this);
     connect(layers_btn, &QPushButton::clicked, this, &Dialog::layers_handler);
@@ -112,6 +116,7 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     yedit->setPlaceholderText("enter y coor");
     layout->setContentsMargins(20, 20, 20, 20);
     layout->addWidget(points_label);
+    layout->addWidget(layers_label);
     layout->addWidget(submit);
     layout->addWidget(xedit);
     layout->addWidget(yedit);
@@ -148,10 +153,10 @@ QGISEXTERN void unload(QgisPlugin* plugin){
     delete plugin;
 }
 
-void QgsMando::button_action(){
-    std::cout << "button action" << std::endl;
-    QgsMessageLog::logMessage(QString("menu clicked"), QString("again welcome"), Qgis::MessageLevel::Info);
-}
+//void QgsMando::button_action(){
+//    std::cout << "button action" << std::endl;
+//    QgsMessageLog::logMessage(QString("menu clicked"), QString("again welcome"), Qgis::MessageLevel::Info);
+//}
 
 void QgsMando::show_dialog(){
     Dialog Mydialog;
@@ -172,7 +177,7 @@ void QgsMando::initGui(){
 }
 
 void QgsMando::unload(){
-    mIface->removePluginMenu(tr("&Mando"), qaction);
+    //mIface->removePluginMenu(tr("&Mando"), qaction);
     mIface->removePluginMenu(tr("&Dialog"), dialogAction);
     std::cout << "::unload" << std::endl;
 }

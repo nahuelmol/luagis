@@ -30,6 +30,7 @@ class QgsMando:public QObject, public QgisPlugin {
 
     private:
         QgisInterface* mIface;
+        //QAction* qaction;
         QAction* dialogAction;
 };
 #endif
