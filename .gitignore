@@ -12,6 +12,7 @@
 *.png
 *.db
 
+Makefile
 tests/
 
 main
