@@ -2,7 +2,7 @@ M = {}
 
 function M.addSEV(date)
     --current_date -> Idk where to take the date, from here or from cpp
-    name = " SEV"..date
+    name = " "..date
     head = "CREATE TABLE IF NOT EXISTS"
     id   = "ID INTEGER PRIMARY KEY AUTOINCREMENT"
 
@@ -11,7 +11,7 @@ function M.addSEV(date)
 end
 
 function M.delSEV(date)
-    name = " SEV"..date
+    name = " "..date
     head = "CREATE TABLE IF NOT EXISTS"
     ab = "ABm FLOAT"
     pa = "Pa FLOAT"
@@ -20,8 +20,8 @@ function M.delSEV(date)
     return complete_qry
 end
 
-function M.addPOINT(tabledate, abm, pa)
-    head = "INSERT INTO SEV"..tabledate
+function M.addPOINT(sevname, abm, pa)
+    head = "INSERT INTO "..sevname
 
     complete_qry = head.."(ABm, Pa) VALUES ("..abm..","..pa..")"
     return complete_qry

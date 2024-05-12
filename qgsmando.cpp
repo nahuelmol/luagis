@@ -1,4 +1,3 @@
-#include<iostream>
 #include<lua.hpp>
 #include<cmath>
 #include<qgisplugin.h>
@@ -11,7 +10,37 @@
 #include "dialog.h"
 #include "qgisinterface.h"
 #include <QAction>
-#include "embedding.h"
+
+#include <qgsmultipoint.h>
+#include <qgsgeometry.h>
+#include <qgsabstractgeometry.h>
+#include <qgsfeature.h>
+
+#include "embedding.cpp"
+#include "dbss/conn.cpp"
+
+void Dialog::add_sev(){
+    QString sev = sev_edit->text();
+    qDebug() << "the name is" << sev;
+    sev_edit->setPlaceholderText("");
+
+    std::string filename = "conn";
+    lua_State* L = lua_connection();
+    QByteArray bytesev = sev.toUtf8();
+    const char* charsev = bytesev.constData();
+    lua_pushstring(L, charsev);
+    lua_setglobal(L, "sevname");
+    lua_pushstring(L, "ADDSEV");
+    lua_setglobal(L, "command");
+    luaL_Reg db[] = {
+        {"connect",     conn_addapted},
+        {"query",       query_addapted},
+        {NULL, NULL}
+    };
+    luaL_setfuncs(L,db, 0);
+    lua_setglobal(L, "db");
+    lua_load(filename, L);
+}
 
 void Dialog::submit_content(){
     QString xcoor = xedit->text();
@@ -26,22 +55,38 @@ void Dialog::submit_content(){
     float xnumber = std::stof(xcoordinate);
     float ynumber = std::stof(ycoordinate);
 
-    std::string filename = "submit";
+    //if(currentVectorLayer){
+    //    addPoint(xnumber, ynumber, currentVectorLayer);
+    //    qDebug() << "current vector layer name:" << currentVectorLayer->name();
+    //} else {
+    //    qDebug() << "current Vector layer is null";
+    //}
+
+    //a point requires -> sevname, command (lua) and point(x,y) values
+    QString sev = sev_edit->text();
+    QByteArray bytesev = sev.toUtf8();
+    const char* charsev = bytesev.constData();
+
     lua_State* L = lua_connection();
+    lua_pushstring(L, charsev);
+    lua_setglobal(L, "sevname");
+    lua_pushstring(L, "ADDP");
+    lua_setglobal(L, "command");
 
     lua_pushnumber(L, xnumber);
-    lua_setglobal(L, "xnumber");
+    lua_setglobal(L, "x");
     lua_pushnumber(L, ynumber);
-    lua_setglobal(L, "ynumber");
+    lua_setglobal(L, "y");
+    luaL_Reg db[] = {
+        {"connect",     conn_addapted},
+        {"query",       query_addapted},
+        {NULL, NULL}
+    };
+    luaL_setfuncs(L, db,0);
+    lua_setglobal(L, "db");
 
-    if(currentVectorLayer){
-        addPoint(xnumber, ynumber, currentVectorLayer);
-        qDebug() << "current vector layer name:" << currentVectorLayer->name();
-    } else {
-        qDebug() << "current Vector layer is null";
-    }
-
-    lua_load(filename, L);
+    std::string conn_file = "conn";
+    lua_load(conn_file, L);
 }
 
 void Dialog::layers_handler(){
@@ -99,7 +144,7 @@ void Dialog::layers_handler(){
 
 
 Dialog::Dialog(QWidget *parent): QDialog(parent){
-    setFixedSize(700,300);
+    setFixedSize(700,400);
 
     layout      = new QVBoxLayout(this);
     submit      = new QPushButton("submit", this);
@@ -107,11 +152,17 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     yedit       = new QLineEdit(this);
     points_label= new QLabel("Points:", this);
     layers_label= new QLabel("Layers:", this);
+    sev_label   = new QLabel("SEV:", this); 
 
     layers_btn = new QPushButton("layers", this);
     connect(layers_btn, &QPushButton::clicked, this, &Dialog::layers_handler);
     connect(submit, &QPushButton::clicked, this, &Dialog::submit_content);
 
+    addsev      = new QPushButton("Add sev", this); 
+    sev_edit    = new QLineEdit(this);
+    connect(addsev, &QPushButton::clicked, this, &Dialog::add_sev);
+
+    sev_edit->setPlaceholderText("sev name here");
     xedit->setPlaceholderText("enter x coor");
     yedit->setPlaceholderText("enter y coor");
     layout->setContentsMargins(20, 20, 20, 20);
@@ -120,6 +171,11 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     layout->addWidget(submit);
     layout->addWidget(xedit);
     layout->addWidget(yedit);
+
+
+    layout->addWidget(sev_label);
+    layout->addWidget(addsev);
+    layout->addWidget(sev_edit);
     setLayout(layout);
 }
 

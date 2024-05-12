@@ -415,7 +415,8 @@ compiler_clean: compiler_moc_predefs_clean
 
 qgsmando.o: qgsmando.cpp qgismando.h \
 		dialog.h \
-		embedding.cpp
+		embedding.cpp \
+		dbss/conn.cpp
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o qgsmando.o qgsmando.cpp
 
 ####### Install

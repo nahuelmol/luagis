@@ -12,6 +12,7 @@ class Dialog: public QDialog {
     public slots:
         void submit_content();
         void layers_handler();
+        void add_sev();
 
     private:
         QgsVectorLayer *currentVectorLayer;
@@ -20,6 +21,10 @@ class Dialog: public QDialog {
         QPushButton *layers_btn;
         QLineEdit *xedit;
         QLineEdit *yedit;
+
+        QLabel      *sev_label;
+        QLineEdit   *sev_edit;
+        QPushButton *addsev;
 
         //statics
         QLabel *layers_label;

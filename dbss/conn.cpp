@@ -46,7 +46,6 @@ void connect(){
 }
 
 int conn_addapted(lua_State* L){
-    const char* str = lua_tostring(L, 1);
     connect();
     return 1;
 }

@@ -1,8 +1,10 @@
 #include <iostream>
 
+
 double rest(float a, float b){
     return a - b;
 }
+
 
 double add(float a, float b){
     return a + b;
@@ -27,8 +29,6 @@ lua_State* lua_connection(){
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
     lua_newtable(L);
-    //luaL_setfuncs(L, myMath, 0);
-    //lua_setglobal(L, "myMath");
     return L;
 }
 
@@ -57,18 +57,17 @@ void addPoint(float x, float y, QgsVectorLayer* vectorlayer){
         qDebug() << "editable";
     }
     qDebug() << "starting editing session";
-    QgsFeature feature;
-    QgsMultiPointXY multipoint;
-    //QgsPointXY point(x,y);
-    QgsPointXY fpoint(x,y);
+    //QgsFeature feature;
+    //QgsMultiPointXY multipoint;
+    //QgsPointXY fpoint(x,y);
     //multipoint.addGeometry(QgsGeometry::fromPointXY(point));
     //QgsGeometry geopoint = QgsGeometry::fromPointXY(fpoint);
     //const QgsAbstractGeometry *cabsgeopoint = geopoint.constGet();
     //QgsAbstractGeometry* absgeopoint = const_cast<QgsAbstractGeometry*>(cabsgeopoint);
     //multipoint.addGeometry(absgeopoint);
-    multipoint.append(fpoint);
-    QgsGeometry neoGEO = QgsGeometry::fromMultiPointXY(multipoint);
-    feature.setGeometry(neoGEO);
+    //multipoint.append(fpoint);
+    //QgsGeometry neoGEO = QgsGeometry::fromMultiPointXY(multipoint);
+    //feature.setGeometry(neoGEO);
     /*if (!vectorlayer->addFeature(feature)) {
         // Handle error adding feature
         vectorlayer->rollBack();
@@ -77,10 +76,10 @@ void addPoint(float x, float y, QgsVectorLayer* vectorlayer){
         qDebug() << "Data Provider Error:" << error.type();
         return;
     }*/
-    if(feature.hasGeometry()){
-        qDebug() << "has geometry";
-    }
-    vectorlayer->addFeature(feature);
+    //if(feature.hasGeometry()){
+    //    qDebug() << "has geometry";
+    //}
+    //vectorlayer->addFeature(feature);
     if(!vectorlayer->commitChanges()){
         qDebug() << "Error commiting changes";
     };

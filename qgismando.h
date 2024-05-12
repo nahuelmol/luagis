@@ -18,7 +18,6 @@ static const QString s_version = QStringLiteral("Version 1.2.3");
 static const QgisPlugin::PluginType s_type = QgisPlugin::UI;
 
 class QgsMando:public QObject, public QgisPlugin {
-
     public: 
         explicit QgsMando(QgisInterface* iface);
         //~QgsMando();
