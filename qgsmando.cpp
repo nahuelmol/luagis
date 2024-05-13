@@ -10,6 +10,7 @@
 #include "dialog.h"
 #include "qgisinterface.h"
 #include <QAction>
+#include <QComboBox>
 
 #include <qgsmultipoint.h>
 #include <qgsgeometry.h>
@@ -89,6 +90,23 @@ void Dialog::submit_content(){
     lua_load(conn_file, L);
 }
 
+void Dialog::sev_checker(){
+
+    //this will list all SEVS created
+    lua_State* L = lua_connection();
+    lua_pushstring(L, "CHECKSEVS");
+    lua_setglobal(L, "command");
+    std::string filename = "conn";
+    luaL_Reg db[] = {
+        {"connect",     conn_addapted},
+        {"query",       query_addapted},
+        {NULL, NULL}
+    };
+    luaL_setfuncs(L, db,0);
+    lua_setglobal(L, "db");
+    lua_load(filename,L);
+}
+
 void Dialog::layers_handler(){
     QgsProject *project = QgsProject::instance();
     std::string typelayer = "unknown";
@@ -142,9 +160,29 @@ void Dialog::layers_handler(){
     lua_load(filename, L);
 }
 
+void displayingComboBox(QComboBox *combobox){
+    lua_State *L = lua_connection();
+    std::string filename = "conn";
+    
+    //I am going to create ALLSEVS if it is not created
+    lua_pushstring(L, "INIT");
+    lua_setglobal(L, "command");
+    luaL_Reg db[] = {
+        {"connect",     conn_addapted},
+        {"query",       query_addapted},
+        {NULL, NULL}
+    };
+    luaL_setfuncs(L, db,0);
+    lua_setglobal(L, "db");
+    lua_load(filename,L);
+
+    combobox->addItem("Option 1");
+    combobox->addItem("Option 2");
+    combobox->addItem("Option 3");
+}
 
 Dialog::Dialog(QWidget *parent): QDialog(parent){
-    setFixedSize(700,400);
+    setFixedSize(800,500);
 
     layout      = new QVBoxLayout(this);
     submit      = new QPushButton("submit", this);
@@ -154,6 +192,8 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     layers_label= new QLabel("Layers:", this);
     sev_label   = new QLabel("SEV:", this); 
 
+    combobox    = new QComboBox(this);
+
     layers_btn = new QPushButton("layers", this);
     connect(layers_btn, &QPushButton::clicked, this, &Dialog::layers_handler);
     connect(submit, &QPushButton::clicked, this, &Dialog::submit_content);
@@ -161,6 +201,9 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     addsev      = new QPushButton("Add sev", this); 
     sev_edit    = new QLineEdit(this);
     connect(addsev, &QPushButton::clicked, this, &Dialog::add_sev);
+    
+    checksev    = new QPushButton("check available sevs");
+    connect(checksev, &QPushButton::clicked, this, &Dialog::sev_checker);
 
     sev_edit->setPlaceholderText("sev name here");
     xedit->setPlaceholderText("enter x coor");
@@ -176,6 +219,10 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     layout->addWidget(sev_label);
     layout->addWidget(addsev);
     layout->addWidget(sev_edit);
+    layout->addWidget(checksev);
+
+    displayingComboBox(combobox);
+    layout->addWidget(combobox);
     setLayout(layout);
 }
 

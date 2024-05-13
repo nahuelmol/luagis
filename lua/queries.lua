@@ -1,5 +1,24 @@
 M = {}
 
+-- I must think when to create the ALLSEVS table
+-- I should be unique
+function M.initALLSEVS()
+    query = "CREATE TABLE IF NOT EXISTS ALLSEVS"
+    id = "ID INTEGER PRIMARY KEY AUTOINCREMENT"
+    complete = query.." ("..id..", Name)"
+    return complete
+ end
+
+function M.checkSEVS()
+    query = "SELECT * FROM ALLSEVS"
+    return query
+end
+
+function M.recordSEV(sevname)
+    query = "INSERT INTO ALLSEVS (Name) VALUES ('"..sevname.."')"
+    return query
+end
+
 function M.addSEV(date)
     --current_date -> Idk where to take the date, from here or from cpp
     name = " "..date

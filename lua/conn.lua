@@ -12,7 +12,16 @@ local SEVNAME  = sevname
 local COMMAND  = command
 
 function SWITCHER(OPC)
-    if(OPC == "ADDP") then
+
+    if (OPC == "CHECKSEVS")then
+        local qr = queries.checkSEVS()
+        db.query(qr)
+    elseif(OPC == "INIT") then
+        local qr = queries.initALLSEVS()
+        db.query(qr)
+        local qr = queries.checkSEVS()
+        db.query(qr)
+    elseif(OPC == "ADDP") then
         local qr = queries.addPOINT(SEVNAME,x,y)
         db.query(qr)
     elseif(OPC == "DELP") then
@@ -20,6 +29,8 @@ function SWITCHER(OPC)
         db.query(qr)
     elseif(OPC == "ADDSEV") then
         local qr = queries.addSEV(SEVNAME)
+        db.query(qr)
+        qr = queries.recordSEV(SEVNAME)
         db.query(qr)
     elseif(OPC == "DELSEV") then
         local qr = queries.delSEV(SEVNAME)

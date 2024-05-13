@@ -17,12 +17,21 @@ sqlite3* conn(){
     return db;
 }
 
+int callback(void *data, int argc, char **argv, char **azColName){
+    int i;
+    for(i=0; i<argc; i++){
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+    printf("\n");
+    return 0;
+}
+
 void query(const char* myquery){
     sqlite3* db;
     char* errMsg = 0;
     int rc;
     rc = openfile(&db);
-    rc = sqlite3_exec(db, myquery, NULL, 0, &errMsg);
+    rc = sqlite3_exec(db, myquery, callback, 0, &errMsg);
     if(rc != SQLITE_OK){
         fprintf(stderr, "SQL error %s\n", errMsg);
         sqlite3_free(errMsg);

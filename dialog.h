@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QComboBox>
 
 class Dialog: public QDialog {
     public:
@@ -13,6 +14,7 @@ class Dialog: public QDialog {
         void submit_content();
         void layers_handler();
         void add_sev();
+        void sev_checker();
 
     private:
         QgsVectorLayer *currentVectorLayer;
@@ -29,6 +31,14 @@ class Dialog: public QDialog {
         //statics
         QLabel *layers_label;
         QLabel *points_label;
+
+        //db
+        QLabel *dbsevs_label;
+        QLabel *current_sev;
+        QPushButton *checksev;
+
+        QComboBox *combobox;
+
 };
 
 #endif // DIALOG_H
