@@ -38,7 +38,6 @@ class Dialog: public QDialog {
         QPushButton *checksev;
 
         QComboBox *combobox;
-
 };
 
 #endif // DIALOG_H

@@ -1,5 +1,9 @@
 #include <sqlite3.h>
 
+struct QueryResult {
+    std::vector<std::vector<std::string>> rows;
+};
+
 int openfile(sqlite3** db){
     int rc;
     rc = sqlite3_open("example.db", db);
@@ -18,37 +22,61 @@ sqlite3* conn(){
 }
 
 int callback(void *data, int argc, char **argv, char **azColName){
-    int i;
-    for(i=0; i<argc; i++){
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    QueryResult* result = static_cast<QueryResult*>(data);
+    std::vector<std::string> row;
+    for(int i = 0; i < argc; i++) {
+        row.push_back(argv[i] ? argv[i] : "NULL");
     }
-    printf("\n");
+    result->rows.push_back(row);
     return 0;
 }
-
-void query(const char* myquery){
+std::vector<std::string> query(const char* myquery){
     sqlite3* db;
+    QueryResult result;
+
+    std::vector<std::string> data_returned;
+    int column = 1;
+
     char* errMsg = 0;
     int rc;
     rc = openfile(&db);
-    rc = sqlite3_exec(db, myquery, callback, 0, &errMsg);
+    rc = sqlite3_exec(db, myquery, callback, &result, &errMsg);
     if(rc != SQLITE_OK){
         fprintf(stderr, "SQL error %s\n", errMsg);
         sqlite3_free(errMsg);
     } else {
         fprintf(stdout, "command executed successfully\n");
+        for(const auto& row : result.rows) {
+            for(const auto& value : row) {
+                if(column == 2){
+                    data_returned.push_back(value);
+                }
+                column = column + 1;
+            }
+            column = 1;
+        }
     }
     sqlite3_close(db);
+    return data_returned;
 }
 int query_addapted(lua_State* L){
     const char* querystr = lua_tostring(L, 1);
-    query(querystr);
+    std::vector<std::string> result = query(querystr);
+    int i = 1;
+    for(const auto& each: result){
+        std::string sev_id = "SEV";
+        sev_id.append(std::to_string(i));
+        lua_pushstring(L,  each.c_str());
+        lua_setglobal(L, sev_id.c_str());
+        i = i + 1;
+    }
+    lua_pushinteger(L, i-1);
+    lua_setglobal(L, "DATASET_LEN");
     return 1;
 }
 
 void connect(){
     sqlite3* db;
-
     int rc;
     rc = openfile(&db);
     sqlite3_close(db);

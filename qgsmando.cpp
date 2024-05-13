@@ -41,6 +41,7 @@ void Dialog::add_sev(){
     luaL_setfuncs(L,db, 0);
     lua_setglobal(L, "db");
     lua_load(filename, L);
+    lua_close(L);
 }
 
 void Dialog::submit_content(){
@@ -88,7 +89,10 @@ void Dialog::submit_content(){
 
     std::string conn_file = "conn";
     lua_load(conn_file, L);
+    lua_close(L);
 }
+
+//void split_records(QComboBox *combobox){}
 
 void Dialog::sev_checker(){
 
@@ -96,6 +100,10 @@ void Dialog::sev_checker(){
     lua_State* L = lua_connection();
     lua_pushstring(L, "CHECKSEVS");
     lua_setglobal(L, "command");
+
+    lua_newtable(L);
+    lua_setglobal(L,"DATASET");
+
     std::string filename = "conn";
     luaL_Reg db[] = {
         {"connect",     conn_addapted},
@@ -105,6 +113,26 @@ void Dialog::sev_checker(){
     luaL_setfuncs(L, db,0);
     lua_setglobal(L, "db");
     lua_load(filename,L);
+
+    int i = 1;
+    //lua_getglobal(L,"DATASET_LEN");
+    //int dataset_len = lua_tointeger(L,-1);
+    lua_getglobal(L,"DATASET");
+    if(lua_istable(L,-1)){
+        lua_pushnil(L);
+        while(lua_next(L,-2) != 0){
+            std::string option = lua_tostring(L,-2);
+            option.append(":");
+            option.append(lua_tostring(L,-1));
+            std::cout << "option:" << option << std::endl;
+            combobox->addItem(option.c_str());
+            lua_pop(L,1);
+        }
+    }
+    lua_close(L);
+
+    //std::string option;
+    //combobox->addItem(option);
 }
 
 void Dialog::layers_handler(){
@@ -158,6 +186,7 @@ void Dialog::layers_handler(){
     std::string filename = "layers";
     lua_State* L = lua_connection();
     lua_load(filename, L);
+    lua_close(L);
 }
 
 void displayingComboBox(QComboBox *combobox){
@@ -175,10 +204,7 @@ void displayingComboBox(QComboBox *combobox){
     luaL_setfuncs(L, db,0);
     lua_setglobal(L, "db");
     lua_load(filename,L);
-
-    combobox->addItem("Option 1");
-    combobox->addItem("Option 2");
-    combobox->addItem("Option 3");
+    lua_close(L);
 }
 
 Dialog::Dialog(QWidget *parent): QDialog(parent){
@@ -277,6 +303,7 @@ void QgsMando::initGui(){
     lua_pushinteger(L, 42);
     lua_setglobal(L, "myvariable");
     lua_load(init, L);
+    lua_close(L);
 }
 
 void QgsMando::unload(){

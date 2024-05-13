@@ -1,11 +1,8 @@
 #include <iostream>
 
-
 double rest(float a, float b){
     return a - b;
 }
-
-
 double add(float a, float b){
     return a + b;
 }
@@ -31,7 +28,6 @@ lua_State* lua_connection(){
     lua_newtable(L);
     return L;
 }
-
 int lua_load(std::string& filename, lua_State* L){
     std::string path = "lua/" + filename + ".lua";
     const char* filepath = path.c_str();
@@ -40,7 +36,6 @@ int lua_load(std::string& filename, lua_State* L){
         lua_close(L);
         return 1;
     }
-    lua_close(L);
     return 0;
 }
 

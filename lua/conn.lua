@@ -8,6 +8,12 @@ package.path = prev_path
 -- just one SEV must be worked during the program, avoiding identation between SEVs
 -- then referencing it by "current SEVs" is redundant
 
+function getlen(T)
+    local count = 0
+    for _ in pairs(T) do count = count + 1 end
+    return count
+end
+
 local SEVNAME  = sevname
 local COMMAND  = command
 
@@ -15,7 +21,12 @@ function SWITCHER(OPC)
 
     if (OPC == "CHECKSEVS")then
         local qr = queries.checkSEVS()
-        db.query(qr)
+        local returned = db.query(qr)
+
+        DATASET["SEV1"] = SEV1
+        DATASET["SEV2"] = SEV2
+
+        print("length: "..DATASET_LEN)
     elseif(OPC == "INIT") then
         local qr = queries.initALLSEVS()
         db.query(qr)
