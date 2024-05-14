@@ -29,7 +29,6 @@ class Dialog: public QDialog {
         QPushButton *addsev;
 
         //statics
-        QLabel *layers_label;
         QLabel *points_label;
 
         //db
@@ -38,6 +37,7 @@ class Dialog: public QDialog {
         QPushButton *checksev;
 
         QComboBox *combobox;
+        QComboBox *layer_cbox;
 };
 
 #endif // DIALOG_H

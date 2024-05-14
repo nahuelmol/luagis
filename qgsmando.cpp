@@ -44,6 +44,39 @@ void Dialog::add_sev(){
     lua_close(L);
 }
 
+QgsVectorLayer* lookat(std::string target_layer){
+    QgsProject *project = QgsProject::instance();
+    QList<QgsMapLayer *> mapLayers = project->mapLayers().values();
+    for(QgsMapLayer *layer: mapLayers){
+        QString layername = layer->name();
+        std::string layern= layername.toStdString();
+        if(layern == target_layer){
+            QgsVectorLayer* vectorLayer = qobject_cast<QgsVectorLayer*>(layer);
+            return vectorLayer;
+        }
+    }
+    return nullptr;
+}
+
+std::string justname(std::string entire){
+    char delimiter = ':';
+    std::string name;
+    std::istringstream stream(entire);
+    std::getline(stream, name, delimiter);
+    return name;
+}
+std::string nameafter(std::string entire){
+    size_t pos = entire.find(':');
+    if (pos != std::string::npos && pos + 1 < entire.length()) {
+        std::string secondPart = entire.substr(pos + 1);
+        std::cout << "Second part: " << secondPart << std::endl;
+        return secondPart;
+    } else {
+        std::cout << "Colon not found or no second part." << std::endl;
+        return "";
+    }
+}
+
 void Dialog::submit_content(){
     QString xcoor = xedit->text();
     QString ycoor = yedit->text();
@@ -57,20 +90,30 @@ void Dialog::submit_content(){
     float xnumber = std::stof(xcoordinate);
     float ynumber = std::stof(ycoordinate);
 
-    //if(currentVectorLayer){
-    //    addPoint(xnumber, ynumber, currentVectorLayer);
-    //    qDebug() << "current vector layer name:" << currentVectorLayer->name();
-    //} else {
-    //    qDebug() << "current Vector layer is null";
-    //}
+    QString selected_layer = layer_cbox->currentText();
+    std::string target = selected_layer.toStdString();
+    std::string targetname = justname(target);
+    QString fordebug = QString::fromStdString(targetname);
+    qDebug() << "selected layer: " << fordebug;
+
+    currentVectorLayer = lookat(targetname);//with the name it returns the layer
+    if(currentVectorLayer != nullptr){
+        addPoint(xnumber, ynumber, currentVectorLayer);
+        qDebug() << "current vector layer name:" << currentVectorLayer->name();
+    } else {
+        qDebug() << "current Vector layer is null";
+    }
 
     //a point requires -> sevname, command (lua) and point(x,y) values
-    QString sev = sev_edit->text();
-    QByteArray bytesev = sev.toUtf8();
-    const char* charsev = bytesev.constData();
+    QString sevinbox    = combobox->currentText();
+    std::string sevall  = sevinbox.toStdString();
+    std::string sev     = nameafter(sevall);
+    //QString sev = sev_edit->text();
+    //QByteArray bytesev = sev.toUtf8();
+    //const char* charsev = bytesev.constData();
 
     lua_State* L = lua_connection();
-    lua_pushstring(L, charsev);
+    lua_pushstring(L, sev.c_str());
     lua_setglobal(L, "sevname");
     lua_pushstring(L, "ADDP");
     lua_setglobal(L, "command");
@@ -92,10 +135,7 @@ void Dialog::submit_content(){
     lua_close(L);
 }
 
-//void split_records(QComboBox *combobox){}
-
 void Dialog::sev_checker(){
-
     //this will list all SEVS created
     lua_State* L = lua_connection();
     lua_pushstring(L, "CHECKSEVS");
@@ -115,8 +155,6 @@ void Dialog::sev_checker(){
     lua_load(filename,L);
 
     int i = 1;
-    //lua_getglobal(L,"DATASET_LEN");
-    //int dataset_len = lua_tointeger(L,-1);
     lua_getglobal(L,"DATASET");
     if(lua_istable(L,-1)){
         lua_pushnil(L);
@@ -130,15 +168,11 @@ void Dialog::sev_checker(){
         }
     }
     lua_close(L);
-
-    //std::string option;
-    //combobox->addItem(option);
 }
 
 void Dialog::layers_handler(){
     QgsProject *project = QgsProject::instance();
-    std::string typelayer = "unknown";
-    QString layers = "";
+    std::vector<std::string> options;
     if(!project){
         std::cout << "theres not a project"<< std::endl;
     } else {
@@ -146,10 +180,15 @@ void Dialog::layers_handler(){
         for (QgsMapLayer *layer: mapLayers){
             QString layerN = layer->name(); //layer name
             QString layerT = layer->dataProvider()->name(); //layer type
+
             std::string layer_type = layerT.toStdString();
-            
-            qDebug() << "name:" << layerN;
-            layers = layers + "\n" +layerN +": "+ layerT;
+            std::string layer_name = layerN.toStdString();
+            std::string layercomplete;
+            layercomplete.append(layer_name);
+            layercomplete.append(":");
+            layercomplete.append(layer_type);
+            options.push_back(layercomplete);
+
             QgsVectorLayer* vectorLayer = qobject_cast<QgsVectorLayer*>(layer);
             if(vectorLayer){
                 QgsWkbTypes::Type geometryType = vectorLayer->wkbType();
@@ -159,7 +198,7 @@ void Dialog::layers_handler(){
                         break;
                     case QgsWkbTypes::MultiPoint:
                         qDebug() << "multipoint vector layer:" << layerT;
-                        currentVectorLayer = vectorLayer;
+                        //currentVectorLayer = vectorLayer;
                         break;
                     case QgsWkbTypes::LineString:
                     case QgsWkbTypes::LineStringM:
@@ -182,11 +221,14 @@ void Dialog::layers_handler(){
             }
         }
     }
-    layers_label->setText(layers);
     std::string filename = "layers";
     lua_State* L = lua_connection();
     lua_load(filename, L);
     lua_close(L);
+
+    for(const auto& option: options){
+        layer_cbox->addItem(option.c_str());
+    }
 }
 
 void displayingComboBox(QComboBox *combobox){
@@ -215,10 +257,10 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     xedit       = new QLineEdit(this);
     yedit       = new QLineEdit(this);
     points_label= new QLabel("Points:", this);
-    layers_label= new QLabel("Layers:", this);
     sev_label   = new QLabel("SEV:", this); 
 
     combobox    = new QComboBox(this);
+    layer_cbox  = new QComboBox(this);
 
     layers_btn = new QPushButton("layers", this);
     connect(layers_btn, &QPushButton::clicked, this, &Dialog::layers_handler);
@@ -236,11 +278,10 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     yedit->setPlaceholderText("enter y coor");
     layout->setContentsMargins(20, 20, 20, 20);
     layout->addWidget(points_label);
-    layout->addWidget(layers_label);
+    layout->addWidget(layer_cbox);
     layout->addWidget(submit);
     layout->addWidget(xedit);
     layout->addWidget(yedit);
-
 
     layout->addWidget(sev_label);
     layout->addWidget(addsev);

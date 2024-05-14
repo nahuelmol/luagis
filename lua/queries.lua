@@ -42,7 +42,8 @@ end
 function M.addPOINT(sevname, abm, pa)
     head = "INSERT INTO "..sevname
 
-    complete_qry = head.."(ABm, Pa) VALUES ("..abm..","..pa..")"
+    complete_qry = head.." (ABm, Pa) VALUES ("..abm..","..pa..")"
+    print("complete query:"..complete_qry)
     return complete_qry
 end
 
