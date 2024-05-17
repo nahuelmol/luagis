@@ -15,10 +15,12 @@ class Dialog: public QDialog {
         void layers_handler();
         void add_sev();
         void sev_checker();
+        void comboTaker(const QString &text);
 
     private:
         QgsVectorLayer *currentVectorLayer;
-        QVBoxLayout *layout;
+        QGridLayout *layout;
+        //QVBoxLayout *layout;
         QPushButton *submit;
         QPushButton *layers_btn;
         QLineEdit *xedit;
@@ -38,6 +40,8 @@ class Dialog: public QDialog {
 
         QComboBox *combobox;
         QComboBox *layer_cbox;
+
+        QTableWidget *table;
 };
 
 #endif // DIALOG_H

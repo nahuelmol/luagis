@@ -6,7 +6,6 @@ double rest(float a, float b){
 double add(float a, float b){
     return a + b;
 }
-
 int restadapted(lua_State* L){
     double a = lua_tonumber(L,1);
     double b = lua_tonumber(L,2);
@@ -21,7 +20,6 @@ int addadapted(lua_State* L){
     lua_pushnumber(L, result);
     return 1;
 }
-
 lua_State* lua_connection(){
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
@@ -40,7 +38,6 @@ int lua_load(std::string& filename, lua_State* L){
 }
 
 void addPoint(float x, float y, QgsVectorLayer* vectorlayer){
-    //vectorlayer->startEditing();
     if (!vectorlayer->isEditable()) {
         if(!vectorlayer->startEditing()){
             qDebug() << "problem starting editing session";
@@ -51,26 +48,28 @@ void addPoint(float x, float y, QgsVectorLayer* vectorlayer){
     if(vectorlayer->isEditable()){
         qDebug() << "editable";
     }
-    qDebug() << "starting editing session";
+    qDebug() << "editing session";
     //QgsFeature feature;
     //QgsMultiPointXY multipoint;
     //QgsPointXY fpoint(x,y);
     //multipoint.addGeometry(QgsGeometry::fromPointXY(point));
+    //
     //QgsGeometry geopoint = QgsGeometry::fromPointXY(fpoint);
     //const QgsAbstractGeometry *cabsgeopoint = geopoint.constGet();
     //QgsAbstractGeometry* absgeopoint = const_cast<QgsAbstractGeometry*>(cabsgeopoint);
     //multipoint.addGeometry(absgeopoint);
     //multipoint.append(fpoint);
+    
     //QgsGeometry neoGEO = QgsGeometry::fromMultiPointXY(multipoint);
     //feature.setGeometry(neoGEO);
-    /*if (!vectorlayer->addFeature(feature)) {
+    //if (!vectorlayer->addFeature(feature)) {
         // Handle error adding feature
-        vectorlayer->rollBack();
-        qDebug() << "error adding feature";
-        QgsError error = vectorlayer->dataProvider()->error();
-        qDebug() << "Data Provider Error:" << error.type();
-        return;
-    }*/
+        //vectorlayer->rollBack();
+        //qDebug() << "error adding feature";
+        //QgsError error = vectorlayer->dataProvider()->error();
+        //qDebug() << "Data Provider Error:" << error.type();
+        //return;
+    //}
     //if(feature.hasGeometry()){
     //    qDebug() << "has geometry";
     //}

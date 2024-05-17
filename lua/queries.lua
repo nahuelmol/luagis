@@ -7,7 +7,12 @@ function M.initALLSEVS()
     id = "ID INTEGER PRIMARY KEY AUTOINCREMENT"
     complete = query.." ("..id..", Name)"
     return complete
- end
+end
+
+function M.retrieveSEV(sevname)
+    query = "SELECT * FROM "..sevname
+    return query
+end
 
 function M.checkSEVS()
     query = "SELECT * FROM ALLSEVS"

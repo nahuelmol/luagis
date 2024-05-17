@@ -30,6 +30,13 @@ int callback(void *data, int argc, char **argv, char **azColName){
     result->rows.push_back(row);
     return 0;
 }
+std::string extractLastWord(const std::string& str) {
+    std::size_t lastSpace = str.find_last_of(" ");
+    if (lastSpace == std::string::npos) {
+        return str;
+    }
+    return str.substr(lastSpace + 1);
+}
 std::vector<std::string> query(const char* myquery){
     sqlite3* db;
     QueryResult result;
@@ -46,14 +53,38 @@ std::vector<std::string> query(const char* myquery){
         sqlite3_free(errMsg);
     } else {
         fprintf(stdout, "command executed successfully\n");
-        for(const auto& row : result.rows) {
-            for(const auto& value : row) {
-                if(column == 2){
-                    data_returned.push_back(value);
+        std::string last = extractLastWord(myquery);
+        std::string cmd(myquery);
+        std::string firstcmd = cmd.substr(0,6);
+        if(firstcmd == "SELECT"){
+            std::string aux;
+            for(const auto& row : result.rows) {
+                for(const auto& value : row) {
+                    std::string condition = "ALLSEVS";
+                    if (last == condition) {
+                        if (column == 2){
+                            std::cout << "value:" << value << std::endl;
+                            data_returned.push_back(value);
+                        }
+                    } else {
+                        if(column == 1){
+                            aux = value;
+                        }
+                        else if (column == 2){
+                            aux.append(";");
+                            aux.append(value);
+                        } 
+                        else if (column == 3) {
+                            aux.append(";");
+                            aux.append(value);
+                            data_returned.push_back(aux);
+                        }
+                    }
+                     
+                    column = column + 1;
                 }
-                column = column + 1;
+                column = 1;
             }
-            column = 1;
         }
     }
     sqlite3_close(db);

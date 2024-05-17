@@ -1,11 +1,18 @@
 #include<lua.hpp>
 #include<cmath>
+#include<string>
+
+#include<vector>
+#include<iostream>
+#include<sstream>
+
 #include<qgisplugin.h>
 //#include "ui_interface.h"
 
 //#include <QgsProject>
 //#include <QgsMapLayer>
 #include <QtWidgets>
+#include <QTableWidgetItem>
 #include "qgismando.h"
 #include "dialog.h"
 #include "qgisinterface.h"
@@ -69,7 +76,6 @@ std::string nameafter(std::string entire){
     size_t pos = entire.find(':');
     if (pos != std::string::npos && pos + 1 < entire.length()) {
         std::string secondPart = entire.substr(pos + 1);
-        std::cout << "Second part: " << secondPart << std::endl;
         return secondPart;
     } else {
         std::cout << "Colon not found or no second part." << std::endl;
@@ -108,9 +114,6 @@ void Dialog::submit_content(){
     QString sevinbox    = combobox->currentText();
     std::string sevall  = sevinbox.toStdString();
     std::string sev     = nameafter(sevall);
-    //QString sev = sev_edit->text();
-    //QByteArray bytesev = sev.toUtf8();
-    //const char* charsev = bytesev.constData();
 
     lua_State* L = lua_connection();
     lua_pushstring(L, sev.c_str());
@@ -154,6 +157,7 @@ void Dialog::sev_checker(){
     lua_setglobal(L, "db");
     lua_load(filename,L);
 
+    combobox->clear();
     int i = 1;
     lua_getglobal(L,"DATASET");
     if(lua_istable(L,-1)){
@@ -234,7 +238,7 @@ void Dialog::layers_handler(){
 void displayingComboBox(QComboBox *combobox){
     lua_State *L = lua_connection();
     std::string filename = "conn";
-    
+
     //I am going to create ALLSEVS if it is not created
     lua_pushstring(L, "INIT");
     lua_setglobal(L, "command");
@@ -249,10 +253,84 @@ void displayingComboBox(QComboBox *combobox){
     lua_close(L);
 }
 
+std::vector<std::string> split(std::string &target, char delimiter){
+    std::vector<std::string> tokens;
+    std::stringstream ss(target);
+    std::string token;
+    
+    while (std::getline(ss, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    
+    return tokens;
+}
+
+void Dialog::comboTaker(const QString &text){
+    std::string filename = "conn";
+    std::string target = text.toStdString();
+    std::string sevname= nameafter(target);
+
+    lua_State* L = lua_connection();
+
+    lua_newtable(L);
+    lua_setglobal(L,"DATASET");
+
+    lua_pushstring(L,sevname.c_str());
+    lua_setglobal(L, "sevname");
+    lua_pushstring(L,"RETRIEVESEV");
+    lua_setglobal(L, "command");
+    luaL_Reg db[] = {
+        {"connect",     conn_addapted},
+        {"query",       query_addapted},
+        {NULL, NULL}
+    };
+    luaL_setfuncs(L, db,0);
+    lua_setglobal(L, "db");
+    lua_load(filename,L);
+
+    int i = 1;
+    int rows = 0;
+    lua_getglobal(L,"DATASET");
+    std::vector<std::string> contents;
+    if(lua_istable(L,-1)){
+        lua_pushnil(L);
+        while(lua_next(L,-2) != 0){
+            std::string option = lua_tostring(L,-2);
+            std::string content= lua_tostring(L,-1);
+            contents.push_back(content);
+            rows = rows + 1;
+            lua_pop(L,1);
+        }
+    } else {
+        qDebug() << "DATASET is not table";
+    }
+    table->setRowCount(rows);
+    table->setColumnCount(3);
+    std::vector<std::vector<std::string>> elements;
+    for (std::string& record: contents){
+        std::vector<std::string> element = split(record, ';');
+        elements.push_back(element);
+    }
+    for (int row = 0; row < rows; ++row) {
+        for (int col = 0; col < 3; ++col) {
+            QString itemcontent = QString::fromStdString(elements[row][col]);
+            QTableWidgetItem *item = new QTableWidgetItem(itemcontent);
+            table->setItem(row, col, item);
+        }
+    }
+    lua_close(L);
+}
+
 Dialog::Dialog(QWidget *parent): QDialog(parent){
     setFixedSize(800,500);
 
-    layout      = new QVBoxLayout(this);
+    //table
+    table       = new QTableWidget(this);
+    table->setRowCount(12);
+    table->setColumnCount(3);
+
+
+    layout      = new QGridLayout;
     submit      = new QPushButton("submit", this);
     xedit       = new QLineEdit(this);
     yedit       = new QLineEdit(this);
@@ -261,6 +339,8 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
 
     combobox    = new QComboBox(this);
     layer_cbox  = new QComboBox(this);
+
+    connect(combobox, &QComboBox::currentTextChanged, this, &Dialog::comboTaker);
 
     layers_btn = new QPushButton("layers", this);
     connect(layers_btn, &QPushButton::clicked, this, &Dialog::layers_handler);
@@ -276,20 +356,28 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     sev_edit->setPlaceholderText("sev name here");
     xedit->setPlaceholderText("enter x coor");
     yedit->setPlaceholderText("enter y coor");
-    layout->setContentsMargins(20, 20, 20, 20);
-    layout->addWidget(points_label);
-    layout->addWidget(layer_cbox);
-    layout->addWidget(submit);
-    layout->addWidget(xedit);
-    layout->addWidget(yedit);
 
-    layout->addWidget(sev_label);
-    layout->addWidget(addsev);
-    layout->addWidget(sev_edit);
-    layout->addWidget(checksev);
+    layout->setSpacing(10); 
+    layout->setSpacing(10); 
+    layout->setSpacing(10); 
+    layout->setSpacing(10); 
+
+    layout->setContentsMargins(20, 20, 20, 20);
+    layout->addWidget(layers_btn, 0, 0);
+    layout->addWidget(points_label, 0, 1);
+    layout->addWidget(layer_cbox, 0, 2);
+    layout->addWidget(submit, 1, 0);
+    layout->addWidget(xedit, 1, 1);
+    layout->addWidget(yedit, 1, 2);
+
+    layout->addWidget(sev_label, 2, 0);
+    layout->addWidget(addsev, 2, 1);
+    layout->addWidget(sev_edit, 2, 2);
+    layout->addWidget(checksev, 3, 0);
 
     displayingComboBox(combobox);
-    layout->addWidget(combobox);
+    layout->addWidget(combobox, 3, 1);
+    layout->addWidget(table, 4, 0);
     setLayout(layout);
 }
 
