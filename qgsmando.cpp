@@ -27,6 +27,8 @@
 #include "embedding.cpp"
 #include "dbss/conn.cpp"
 
+#include "fileproc/filedat.cpp"
+
 void Dialog::add_sev(){
     QString sev = sev_edit->text();
     qDebug() << "the name is" << sev;
@@ -321,14 +323,105 @@ void Dialog::comboTaker(const QString &text){
     lua_close(L);
 }
 
+void Dialog::delpo(){
+    int col = table->currentColumn();
+    int row = table->currentRow();
+    std::string filename = "conn";
+    QString text = combobox->currentText();
+    std::string target = text.toStdString();
+    std::string sevname= nameafter(target);
+
+    QTableWidgetItem *itemid = table->item(row, 0);
+
+    lua_State* L = lua_connection();
+    QString itemidtext = itemid->text();
+    std::string itemidstd = itemidtext.toStdString();
+    lua_pushstring(L, itemidstd.c_str());
+    lua_setglobal(L,"id");
+    lua_pushstring(L, sevname.c_str());
+    lua_setglobal(L, "sevname");
+    lua_pushstring(L,"DELP");
+    lua_setglobal(L, "command");
+    luaL_Reg db[] = {
+        {"connect",     conn_addapted},
+        {"query",       query_addapted},
+        {NULL, NULL}
+    };
+    luaL_setfuncs(L, db,0);
+    lua_setglobal(L, "db");
+    lua_load(filename,L);
+    lua_close(L);
+
+    QString currentSEV = combobox->currentText();
+    comboTaker(currentSEV);
+}
+
+void Dialog::openFile(){
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "",
+                                                        tr("All Files (*);;text (*.txt);;csv (*.csv);;dat(*.dat)"));
+    qDebug() << "filepath:" << fileName;
+    if (!fileName.isEmpty()) {
+        QMessageBox::information(this, tr("File Selected"), tr("You selected: %1").arg(fileName));
+    }
+}
+
+void Dialog::editItem(QTableWidgetItem *item){
+    int row = item->row();
+    int col = item->column();
+
+    QString text = combobox->currentText();
+    std::string target = text.toStdString();
+    std::string sevname= nameafter(target);
+
+    QTableWidgetItem *itemid = table->item(row, 0);
+    QString ID = itemid->text();
+    std::string IDstring = ID.toStdString();
+
+    lua_State* L = lua_connection();
+    lua_pushstring(L, IDstring.c_str());
+    lua_setglobal(L,"id");
+    lua_pushstring(L, sevname.c_str());
+    lua_setglobal(L, "sevname");
+
+    std::string column = "";
+    if(col == 1){
+        column = "ABm";
+    }
+    if(col == 2){
+        column = "Pa";
+    }
+    QString val = item->text();
+    std::string newval = val.toStdString();
+    std::string filename = "conn";
+
+    lua_pushstring(L, newval.c_str());
+    lua_setglobal(L, "newvalue");
+    lua_pushstring(L, column.c_str());
+    lua_setglobal(L, "column");
+    lua_pushstring(L,"EDITP");
+    lua_setglobal(L, "command");
+    luaL_Reg db[] = {
+        {"connect",     conn_addapted},
+        {"query",       query_addapted},
+        {NULL, NULL}
+    };
+    luaL_setfuncs(L, db,0);
+    lua_setglobal(L, "db");
+    lua_load(filename,L);
+    lua_close(L);
+}
+
 Dialog::Dialog(QWidget *parent): QDialog(parent){
     setFixedSize(800,500);
 
+    delpoint = new QPushButton("Del", this);
+    connect(delpoint, &QPushButton::clicked, this, &Dialog::delpo);
+
     //table
     table       = new QTableWidget(this);
+    connect(table, &QTableWidget::itemChanged, this, &Dialog::editItem);
     table->setRowCount(12);
     table->setColumnCount(3);
-
 
     layout      = new QGridLayout;
     submit      = new QPushButton("submit", this);
@@ -339,7 +432,9 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
 
     combobox    = new QComboBox(this);
     layer_cbox  = new QComboBox(this);
+    openFileBtn = new QPushButton("done", this);
 
+    connect(openFileBtn, &QPushButton::clicked, this, &Dialog::openFile);
     connect(combobox, &QComboBox::currentTextChanged, this, &Dialog::comboTaker);
 
     layers_btn = new QPushButton("layers", this);
@@ -378,6 +473,8 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     displayingComboBox(combobox);
     layout->addWidget(combobox, 3, 1);
     layout->addWidget(table, 4, 0);
+    layout->addWidget(delpoint, 4, 1);
+    layout->addWidget(openFileBtn,4, 2);
     setLayout(layout);
 }
 

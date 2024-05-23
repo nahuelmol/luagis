@@ -27,6 +27,7 @@ end
 
 local SEVNAME  = sevname
 local COMMAND  = command
+local ID = id
 
 function SWITCHER(OPC)
 
@@ -38,6 +39,12 @@ function SWITCHER(OPC)
             local key = "SEV"..i
             DATASET[key] = _G[key]
         end
+    elseif(OPC == "EDITP") then
+        local NEWVALUE = newvalue
+        local COLUMN = column
+        local qr = queries.editPOINT(SEVNAME, ID, COLUMN, NEWVALUE)
+        local returned = db.query(qr)
+
     elseif(OPC == "RETRIEVESEV") then
         local qr = queries.retrieveSEV(SEVNAME)
         local returned = db.query(qr)
@@ -63,8 +70,13 @@ function SWITCHER(OPC)
         local qr = queries.addPOINT(SEVNAME,x,y)
         db.query(qr)
     elseif(OPC == "DELP") then
-        local qr = queries.delPOINT(SEVNAME)
-        db.query(qr)
+        if ID ~= nil then
+            print("ID"..ID)
+            local qr = queries.delPOINT(SEVNAME, ID)
+            db.query(qr)
+        else
+            print("ID is nil")
+        end
     elseif(OPC == "ADDSEV") then
         local qr = queries.addSEV(SEVNAME)
         db.query(qr)

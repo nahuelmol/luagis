@@ -16,11 +16,16 @@ class Dialog: public QDialog {
         void add_sev();
         void sev_checker();
         void comboTaker(const QString &text);
+        void delpo();
+        void editCell(int row, int col);
+        void editItem(QTableWidgetItem *item);
+        void openFile();
 
     private:
+        QTableWidgetItem *targetItem;
         QgsVectorLayer *currentVectorLayer;
         QGridLayout *layout;
-        //QVBoxLayout *layout;
+        QPushButton *delpoint;
         QPushButton *submit;
         QPushButton *layers_btn;
         QLineEdit *xedit;
@@ -37,11 +42,15 @@ class Dialog: public QDialog {
         QLabel *dbsevs_label;
         QLabel *current_sev;
         QPushButton *checksev;
+        //QPushButton *editcellbtn;
 
         QComboBox *combobox;
         QComboBox *layer_cbox;
 
         QTableWidget *table;
+
+        //openfile
+        QPushButton *openFileBtn;
 };
 
 #endif // DIALOG_H

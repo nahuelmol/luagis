@@ -1,5 +1,6 @@
 M = {}
 
+
 -- I must think when to create the ALLSEVS table
 -- I should be unique
 function M.initALLSEVS()
@@ -53,10 +54,19 @@ function M.addPOINT(sevname, abm, pa)
 end
 
 function M.delPOINT(tablename, recordid)
-    head  = "DELETE FROM "..tablename.."WHERE "
+    head  = "DELETE FROM "..tablename.." WHERE "
     condition = "id = "..recordid
 
     complete_qry = head..condition
+    return complete_qry
+end
+
+function M.editPOINT(tablename, id, column, newvalue)
+    head    = "UPDATE "..tablename 
+    set     = " SET "..column.."="..newvalue
+    condition = " WHERE id="..id
+
+    complete_qry = head..set..condition
     return complete_qry
 end
 
