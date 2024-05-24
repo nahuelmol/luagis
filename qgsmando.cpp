@@ -363,6 +363,8 @@ void Dialog::openFile(){
     if (!fileName.isEmpty()) {
         QMessageBox::information(this, tr("File Selected"), tr("You selected: %1").arg(fileName));
     }
+    std::string filename = fileName.toStdString();
+    std::string data =  readasString(filename);
 }
 
 void Dialog::editItem(QTableWidgetItem *item){
@@ -417,6 +419,10 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     delpoint = new QPushButton("Del", this);
     connect(delpoint, &QPushButton::clicked, this, &Dialog::delpo);
 
+    //file display table
+    displayTable= new QTableWidget(this);
+    displayTable->setRowCount(12);
+    displayTable->setColumnCount(3);
     //table
     table       = new QTableWidget(this);
     connect(table, &QTableWidget::itemChanged, this, &Dialog::editItem);
@@ -474,6 +480,7 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     layout->addWidget(combobox, 3, 1);
     layout->addWidget(table, 4, 0);
     layout->addWidget(delpoint, 4, 1);
+    layout->addWidget(openFileBtn,4, 1);
     layout->addWidget(openFileBtn,4, 2);
     setLayout(layout);
 }

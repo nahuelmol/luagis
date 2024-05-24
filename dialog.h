@@ -48,6 +48,7 @@ class Dialog: public QDialog {
         QComboBox *layer_cbox;
 
         QTableWidget *table;
+        QTableWidget *displayTable;
 
         //openfile
         QPushButton *openFileBtn;
