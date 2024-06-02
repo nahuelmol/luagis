@@ -16,6 +16,7 @@ function M.convertFileToTable()
         print("the file exists")
     else
         print("the file doesn't exists")
+    end
 end
 
 return M

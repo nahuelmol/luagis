@@ -359,12 +359,35 @@ void Dialog::delpo(){
 void Dialog::openFile(){
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "",
                                                         tr("All Files (*);;text (*.txt);;csv (*.csv);;dat(*.dat)"));
-    qDebug() << "filepath:" << fileName;
     if (!fileName.isEmpty()) {
         QMessageBox::information(this, tr("File Selected"), tr("You selected: %1").arg(fileName));
     }
     std::string filename = fileName.toStdString();
-    std::string data =  readasString(filename);
+    std::string data = readasString(filename);
+
+    int len = data.length();
+    std::string auxiliar = "";
+    int row = 0;
+    int col = 0;
+
+    for(int i=0;i<len;i++){
+        if(data[i]==';'){
+            QString aux = QString::fromStdString(auxiliar);
+            QTableWidgetItem *item = new QTableWidgetItem(aux);
+            displayTable->setItem(row,col,item);
+            auxiliar = "";
+            col = col + 1;
+        } else if(data[i]=='\n'){
+            QString aux = QString::fromStdString(auxiliar);
+            QTableWidgetItem *item = new QTableWidgetItem(aux);
+            displayTable->setItem(row,col,item);
+            auxiliar = "";
+            row = row + 1;
+            col = 0;
+        } else {
+            auxiliar.push_back(data[i]);
+        }
+    }
 }
 
 void Dialog::editItem(QTableWidgetItem *item){
@@ -479,9 +502,9 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     displayingComboBox(combobox);
     layout->addWidget(combobox, 3, 1);
     layout->addWidget(table, 4, 0);
-    layout->addWidget(delpoint, 4, 1);
+    layout->addWidget(delpoint, 5, 0);
     layout->addWidget(openFileBtn,4, 1);
-    layout->addWidget(openFileBtn,4, 2);
+    layout->addWidget(displayTable,4, 2);
     setLayout(layout);
 }
 
