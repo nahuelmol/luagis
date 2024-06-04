@@ -11,7 +11,6 @@ std::string clean_separation(std::string& content){
     bool train_spaces = false;
     int N = content.length();
     int spaces = 0;
-    int lines = 0;
     for(int i=0;i<N;i++){
         if(content[i] == ' '){
             spaces = spaces + 1;

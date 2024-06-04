@@ -30,7 +30,6 @@ local COMMAND  = command
 local ID = id
 
 function SWITCHER(OPC)
-
     if (OPC == "CHECKSEVS")then
         local qr = queries.checkSEVS()
         local returned = db.query(qr)

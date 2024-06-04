@@ -48,7 +48,8 @@ void addPoint(float x, float y, QgsVectorLayer* vectorlayer){
     if(vectorlayer->isEditable()){
         qDebug() << "editable";
     }
-    qDebug() << "editing session";
+    qDebug() << "x:" << x;
+    qDebug() << "y:" << y;
     //QgsFeature feature;
     //QgsMultiPointXY multipoint;
     //QgsPointXY fpoint(x,y);

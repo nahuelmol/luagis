@@ -66,7 +66,6 @@ QgsVectorLayer* lookat(std::string target_layer){
     }
     return nullptr;
 }
-
 std::string justname(std::string entire){
     char delimiter = ':';
     std::string name;
@@ -160,7 +159,6 @@ void Dialog::sev_checker(){
     lua_load(filename,L);
 
     combobox->clear();
-    int i = 1;
     lua_getglobal(L,"DATASET");
     if(lua_istable(L,-1)){
         lua_pushnil(L);
@@ -290,7 +288,6 @@ void Dialog::comboTaker(const QString &text){
     lua_setglobal(L, "db");
     lua_load(filename,L);
 
-    int i = 1;
     int rows = 0;
     lua_getglobal(L,"DATASET");
     std::vector<std::string> contents;
@@ -324,7 +321,6 @@ void Dialog::comboTaker(const QString &text){
 }
 
 void Dialog::delpo(){
-    int col = table->currentColumn();
     int row = table->currentRow();
     std::string filename = "conn";
     QString text = combobox->currentText();
@@ -436,6 +432,21 @@ void Dialog::editItem(QTableWidgetItem *item){
     lua_close(L);
 }
 
+void Dialog::to_sev(){
+    int limrow = displayTable->rowCount();
+    int limcol = displayTable->columnCount();
+    for(int row = 0;row < limrow;++row){
+        for(int col = 0;col < limcol;++col){
+            QTableWidgetItem *itemfrom = displayTable->item(row,col);
+            if(itemfrom){
+                QString content = itemfrom->text();
+                QTableWidgetItem *item = new QTableWidgetItem(content);
+                table->setItem(row,col,item);
+            }
+        }
+    }
+}
+
 Dialog::Dialog(QWidget *parent): QDialog(parent){
     setFixedSize(800,500);
 
@@ -461,8 +472,10 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
 
     combobox    = new QComboBox(this);
     layer_cbox  = new QComboBox(this);
-    openFileBtn = new QPushButton("done", this);
+    openFileBtn = new QPushButton("Open", this);
+    toSevBtn    = new QPushButton("To Sev",this);
 
+    connect(toSevBtn, &QPushButton::clicked, this, &Dialog::to_sev);
     connect(openFileBtn, &QPushButton::clicked, this, &Dialog::openFile);
     connect(combobox, &QComboBox::currentTextChanged, this, &Dialog::comboTaker);
 
@@ -504,6 +517,7 @@ Dialog::Dialog(QWidget *parent): QDialog(parent){
     layout->addWidget(table, 4, 0);
     layout->addWidget(delpoint, 5, 0);
     layout->addWidget(openFileBtn,4, 1);
+    layout->addWidget(toSevBtn,4,3);
     layout->addWidget(displayTable,4, 2);
     setLayout(layout);
 }

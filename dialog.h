@@ -20,6 +20,7 @@ class Dialog: public QDialog {
         void editCell(int row, int col);
         void editItem(QTableWidgetItem *item);
         void openFile();
+        void to_sev();
 
     private:
         QTableWidgetItem *targetItem;
@@ -28,6 +29,7 @@ class Dialog: public QDialog {
         QPushButton *delpoint;
         QPushButton *submit;
         QPushButton *layers_btn;
+        QPushButton *toSevBtn;
         QLineEdit *xedit;
         QLineEdit *yedit;
 
